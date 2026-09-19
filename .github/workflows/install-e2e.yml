@@ -75,6 +75,10 @@ jobs:
       - id: pick
         run: |
           set -euo pipefail
+          # GitHub forks do not inherit tags from their upstream repository.
+          # Fetch canonical release tags explicitly so scheduled runs in a fork
+          # test the same released versions as the upstream repository.
+          git fetch --force --tags https://github.com/NousResearch/hermes-agent.git
           tags="$(scripts/sandbox/pick-release-tags.sh --count '${{ inputs.tag-count || 5 }}')"
           echo "Testing updates from: $tags"
           echo "tags=$tags" >> "$GITHUB_OUTPUT"
