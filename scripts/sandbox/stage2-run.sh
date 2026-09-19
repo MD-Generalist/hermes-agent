@@ -196,6 +196,10 @@ if [ "$DEV_SANDBOX_INTERACTIVE" = true ]; then
   dev_mounts=(--dev /dev)
 fi
 
+# npm's min-release-age cooldown comes from the repo .npmrc and is meant for
+# end-user machines. Inside this hermetic sandbox it makes npm fetch per-package
+# release metadata, multiplying short-lived connections that slirp4netns drops
+# under runner load (NousResearch/hermes-agent#88453), so disable it here.
 exec bwrap \
   --unshare-pid \
   --die-with-parent --proc /proc --tmpfs /tmp \
@@ -222,6 +226,7 @@ exec bwrap \
   --setenv HTTPS_PROXY http://127.0.0.1:8080 \
   --setenv ALL_PROXY http://127.0.0.1:8080 \
   --setenv NO_PROXY '' \
+  --setenv npm_config_min_release_age 0 \
   --setenv DEV_SANDBOX_INTERACTIVE "$DEV_SANDBOX_INTERACTIVE" \
   --setenv ELECTRON_DISABLE_SANDBOX 1 \
   "${node_env[@]}" \
