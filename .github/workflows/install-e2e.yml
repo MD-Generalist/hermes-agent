@@ -85,7 +85,7 @@ jobs:
   pick-releases:
     name: Pick release tags
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     outputs:
       tags: ${{ steps.pick.outputs.tags }}
     steps:
@@ -110,6 +110,10 @@ jobs:
           INSTALL_REF: ${{ inputs.install-ref }}
         run: |
           set -euo pipefail
+          # GitHub forks do not inherit tags from their upstream repository.
+          # Fetch canonical release tags explicitly so scheduled runs in a fork
+          # test the same released versions as the upstream repository.
+          git fetch --force --tags https://github.com/NousResearch/hermes-agent.git
           [[ "$TAG_COUNT" =~ ^(10|[1-9])$ ]] || { echo "tag-count must be 1-10, got: $TAG_COUNT" >&2; exit 1; }
           if [ -n "$INSTALL_REF" ]; then
             [[ "$INSTALL_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo 'install-ref must be an exact release tag' >&2; exit 1; }
