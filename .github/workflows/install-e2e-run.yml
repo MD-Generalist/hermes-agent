@@ -96,6 +96,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # GitHub forks do not inherit tags from their upstream repository.
+      # Fetch canonical release tags explicitly so the driver can resolve
+      # the starting release (INSTALL_REF) it stages and updates from.
+      - name: Fetch upstream release tags (fork)
+        run: git fetch --force --tags https://github.com/NousResearch/hermes-agent.git
+
       # One recording mechanism on every OS (Xvfb gives headless linux a
       # display; the same display serves any app the driver launches).
       - name: Start screen recording
