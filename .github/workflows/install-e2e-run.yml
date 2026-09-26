@@ -102,6 +102,10 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
+      # The fork has no release tags of its own; the E2E driver needs OLD tags.
+      - name: Fetch upstream release tags (fork)
+        run: git fetch --force --tags https://github.com/NousResearch/hermes-agent.git
+
       # The checkout owns the chat driver, not OLD's installed Node/runtime.
       - name: Set up driver tools only
         uses: ./.github/actions/setup-pm
