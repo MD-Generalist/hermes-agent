@@ -25,11 +25,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  fork-skip:
+    name: Desktop canary publishing disabled on this fork
+    if: github.repository == 'MD-Generalist/hermes-agent'
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo 'This fork does not publish desktop canary builds.'
+
   tag:
     name: Tag, draft, and start the canary build
     runs-on: ubuntu-24.04
     # A dispatch from a feature branch would tag unmerged code as the canary.
-    if: github.ref_name == github.event.repository.default_branch
+    # This fork does not publish desktop installers to R2. Keep the source
+    # canary pipeline off rather than minting drafts it cannot finish.
+    if: github.ref_name == github.event.repository.default_branch && github.repository != 'MD-Generalist/hermes-agent'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
