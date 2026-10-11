@@ -28,7 +28,15 @@ jobs:
           MERGE_BASE=$(git merge-base origin/main HEAD)
 
           # Find any new author emails in this PR's commits
-          NEW_EMAILS=$(git log ${MERGE_BASE}..HEAD --format='%ae' --no-merges | sort -u)
+          # An upstream sync retains upstream authorship. Only commits newly
+          # authored on the fork need new contributor mappings here.
+          EXCLUDE_UPSTREAM=()
+          if [ "$GITHUB_REPOSITORY" != 'NousResearch/hermes-agent' ]; then
+            git fetch --no-tags https://github.com/NousResearch/hermes-agent.git \
+              main:refs/remotes/attribution-upstream/main
+            EXCLUDE_UPSTREAM=(--not refs/remotes/attribution-upstream/main)
+          fi
+          NEW_EMAILS=$(git log "${MERGE_BASE}..HEAD" "${EXCLUDE_UPSTREAM[@]}" --format='%ae' --no-merges | sort -u)
 
           if [ -z "$NEW_EMAILS" ]; then
             echo "No new commits to check."
