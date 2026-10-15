@@ -87,11 +87,16 @@ export interface ChannelManifest {
 const SHA256 = /^[a-f0-9]{64}$/
 const COMMIT = /^[a-f0-9]{40}$/
 const BUILD_ID = /^[a-f0-9]{32}$/
+
 const VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?(?:\+[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$/
+
 // rc.<N>-vX.Y.Z with N >= 1 without leading zeros and a release version whose
 // major stays within three digits — one regex matching the Python grammar.
 const ARCHIVE_REF = /^rc\.(?:[1-9]\d*)-v(?:0|[1-9]\d{0,2})\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/
+
+// Published channel builds may still carry these retired bundle environment keys.
+const RETIRED_BUNDLE_ENV_KEYS = new Set(['HERMES_SKIP_INTRO', 'HERMES_GUEST_ONBOARDING'])
 
 function parseChannelJson(body: string): unknown {
   const parsed: unknown = JSON.parse(body)
@@ -368,11 +373,14 @@ function request(fields: Fields): ChannelRequest {
     'HERMES_DATA_DIR_SUFFIX',
     'HERMES_DESKTOP_USER_DATA_DIR',
     'HERMES_SHARED_AUTH_DIR',
-    'HERMES_GUEST_ONBOARDING',
-    'HERMES_SKIP_INTRO'
+    'HERMES_PREVIEW_FULL_CONNECTORS'
   ])
 
   for (const key of environment.keys()) {
+    if (RETIRED_BUNDLE_ENV_KEYS.has(key)) {
+      continue
+    }
+
     if (!allowed.has(key)) {
       throw new Error('Invalid bundle environment name')
     }
